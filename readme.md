@@ -15,3 +15,9 @@ Project sederhana untuk eksperimen performa Rust:
 
 ## 🚀 Quick Start
 ```bash
+cargo run
+
+cargo run --release
+```
+
+**Happy learning!** 🦀
