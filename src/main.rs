@@ -17,11 +17,11 @@ fn main() {
             margin_amount: 0,
             margin_percentage: 0.7
         };
-        sum += calculation(req) as i64;  // ✅ Pakai hasilnya!
+        sum += calculation(req) as i64;  
     }
     let duration = start.elapsed();
     
     println!("Rust 1M iterations: {:?}", duration);
     println!("Per operation: {:?}", duration / iterations);
-    println!("Sum (prevent optimization): {}", sum);  // ✅ Print biar gak di-buang
+    println!("Sum (prevent optimization): {}", sum);  
 }
