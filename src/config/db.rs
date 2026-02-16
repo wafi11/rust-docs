@@ -19,6 +19,5 @@ pub async fn create_pool() -> Result<DbPool, sqlx::Error> {
         .connect(&database_url)
         .await?;
 
-    println!("✅ Connected to database with pool size: 50");
     Ok(pool)
 }

@@ -24,14 +24,13 @@ async fn main() -> Result<(), sqlx::Error> {
     // Create app with routes
     let app = Router::new()
         .nest("/api", create_routes())
-        .layer(Extension(pool));  // ✅ Pass pool, bukan function
+        .layer(Extension(pool));  // ✅ Pass pool, not  function
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:5000")
-        .await
-        .unwrap();
+        .await.unwrap();
     
     info!("Server is running on http://0.0.0.0:5000");
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(listener, app).await?;
     
     Ok(())
 }
