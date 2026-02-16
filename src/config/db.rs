@@ -1,25 +1,24 @@
 use std::env;
+use std::time::Duration;
 use sqlx::{Pool, Postgres, postgres::PgPoolOptions};
 
-pub async fn db() -> Result<(), sqlx::Error>{
+pub type DbPool = Pool<Postgres>;
+
+pub async fn create_pool() -> Result<DbPool, sqlx::Error> {
     dotenv::dotenv().ok();
 
     let database_url = env::var("DATABASE_URL")
         .expect("DATABASE_URL must be set");
 
-    // Create a connection pool
-    let pool: Pool<Postgres> = PgPoolOptions::new()
-        .max_connections(5)
-        .connect(&database_url).await?;
+    let pool = PgPoolOptions::new()
+        .max_connections(50)             
+        .min_connections(5)               
+        .acquire_timeout(Duration::from_secs(3)) 
+        .idle_timeout(Duration::from_secs(600))   
+        .max_lifetime(Duration::from_secs(1800))  
+        .connect(&database_url)
+        .await?;
 
-    println!("Connected to the database!");
-    let row: (String,) = sqlx::query_as("SELECT name FROM users LIMIT 1 OFFSET 0")
-        .fetch_one(&pool)
-        .await?; 
-
-    println!("Query result: {}", row.0);
-
-    _ = pool;
-
-    Ok(())
+    println!("✅ Connected to database with pool size: 50");
+    Ok(pool)
 }

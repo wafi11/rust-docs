@@ -1,28 +1,16 @@
-mod config;
-mod basic;
-mod resp;
-use crate::config::db::db;
-use crate::resp::types::RootResponse;
 use axum::{
-    Extension, Json, Router, http::StatusCode, 
-    routing::get,
-    
+    Extension,Router
 };
-use chrono_tz::Asia::Jakarta;
-use sqlx::types::chrono::{Utc};
+
 use tracing::{info, Level};
 
-async fn get_root() -> Result<Json<RootResponse>, StatusCode>{
-    let jakarta_time = Utc::now().with_timezone(&Jakarta);
+mod config;
+mod modules;
+mod routes;
 
-    let respons = RootResponse{
-        timestamp: jakarta_time.format("%Y-%m-%d %H:%M:%S").to_string(),
-        message: "Web Api Version 0.1",
-        status:200,
-    };
+use crate::config::db::create_pool;
+use crate::routes::api::create_routes;
 
-    Ok(Json(respons))
-}
 
 #[tokio::main]
 async fn main() -> Result<(), sqlx::Error> {
@@ -30,17 +18,20 @@ async fn main() -> Result<(), sqlx::Error> {
         .with_max_level(Level::INFO)
         .init();
 
-    db().await?;
+    // Create connection pool
+    let pool = create_pool().await?;
     
+    // Create app with routes
     let app = Router::new()
-    .route("/", get(get_root))
-        .layer(Extension(db));
+        .nest("/api", create_routes())
+        .layer(Extension(pool));  // ✅ Pass pool, bukan function
 
- 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:5000").await.unwrap();
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:5000")
+        .await
+        .unwrap();
+    
     info!("Server is running on http://0.0.0.0:5000");
     axum::serve(listener, app).await.unwrap();
-    
     
     Ok(())
 }
