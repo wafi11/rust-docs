@@ -8,7 +8,7 @@ pub async fn get_all_posts(pool: &DbPool) -> Result<Vec<Post>, SqlxError> {
         "SELECT id, name, description FROM posts"
     )
     .fetch_all(pool)
-    .await?;  // ✅ Propagate error with ?
+    .await?;
     
     Ok(posts)
 }

@@ -1,16 +1,16 @@
 use axum::{
     Extension,Router
 };
-
 use tracing::{info, Level};
 
 mod config;
 mod modules;
 mod routes;
+mod encryption;
 
 use crate::config::db::create_pool;
 use crate::routes::api::create_routes;
-
+use crate::encryption::encryption::{all_encryption};
 
 #[tokio::main]
 async fn main() -> Result<(), sqlx::Error> {
@@ -18,13 +18,15 @@ async fn main() -> Result<(), sqlx::Error> {
         .with_max_level(Level::INFO)
         .init();
 
+    all_encryption();
+
     // Create connection pool
     let pool = create_pool().await?;
     
     // Create app with routes
     let app = Router::new()
         .nest("/api", create_routes())
-        .layer(Extension(pool));  // ✅ Pass pool, not  function
+        .layer(Extension(pool));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:5000")
         .await.unwrap();
