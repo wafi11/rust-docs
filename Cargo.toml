@@ -9,9 +9,14 @@ redis = "1.8"
 apalis = "1.0.0"
 apalis-redis = "1.0.0"
 apalis-board = { version = "1.0.0", features = ["axum", "ui"] }
-axum = "0.8"
+axum = { version = "0.8", features = ["multipart"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sqlx = {version = "0.9.0", features = ["runtime-tokio","postgres"]}
 tokio = { version = "1.45.0", features = ["full"] }
 reqwest = { version = "0.13.5", features = ["json"] }
+s3 = { package = "rust-s3", version = "0.38", default-features = false, features = ["tokio-rustls-tls"] }
+uuid = { version = "1", features = ["v4"] }
+mime_guess = "2"
+dotenvy = "0.15"
+bullmq = { version = "1.2", package = "bullmq-official" }

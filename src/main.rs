@@ -1,64 +1,41 @@
-enum Status {
-    SUCCESS,
-    PENDING,
-    UNREAD
-}
-
-fn test_data(data : (String,Status)){
-    match data.1 {
-        Status::PENDING => ouput_data("Pending"),
-        Status::SUCCESS => ouput_data("Success"),
-        _ => ouput_data("Unread"),
-    };
-
-}
-
-fn ouput_data(data : &str){
-    println!("Status : {}", data)
-}
-
-// async fn call_api() -> Result<serde_json::Value, reqwest::Error>{
-//     let client = reqwest::Client::new();
-
-//     let todo = client.get("https://jsonplaceholder.typicode.com/todos/1")
-//         .send()
-//         .await?
-//         .error_for_status()?
-//         .json()
-//         .await?;
-
-//     Ok(todo)
-// }
-
-// fn string_not_str(data : (String,&str,Box<str>)){
-//     println!("{:?}",data)
-// }
+mod config;
+mod jobs;
+mod tickets;
 
 #[tokio::main]
-async fn main() {
-    let _ = test_data((
-        "wafi ".to_string(),
-        Status::UNREAD,
-    ));
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // let data_ticket = tickets::Ticket {
+    //     price: 1000.0,
+    //     title: "Konser".to_string(),
+    // };
 
+    // let mut svc = tickets::TicketService::new();
+    // svc.create_ticket(data_ticket.title, data_ticket.price);
+    // svc.create_ticket("Bioskop", 2000_0.0);
+    // println!("{:#?}\n", svc.list());
+    // println!("Total : {:?}", svc.total_price());
 
-    // readonly memory
-    let data_string = "wafiuddin";
-    // add to heap memory location, read only memory
-    let boxed : Box<str> = data_string.into(); 
-    println!("{}",boxed);
-    
-    // added to heap memory, butt can be add value to string
-    let mut s = String::from(data_string);
-    s.push_str("wafiq");
-    
-    // back to Box
-    let boxed2 = s.into_boxed_str();
-    println!("{}",boxed2.len());
-    println!("{}",boxed2);
+    let saldo_const = "SALDO_AWAL_STOK";
+    let data_brg = jobs::queue::SaldoAwalStock {
+        barang: "pensil",
+        qty: 1,
+    };
+    let data_saldo: Vec<jobs::queue::State> = vec![jobs::queue::State {
+        gudang: "001".to_string(),
+        data: vec![data_brg],
+    }];
 
-    // back to string
-    let back_data : Box<str> = boxed2.into();
-    println!("{}",back_data);
+    let mut jobs = jobs::queue::QueueService::new();
+    jobs.create_queue(saldo_const, data_saldo);
+    jobs.queue().await?;
+    let worker = jobs.worker().await?;
 
+    println!("{:#?}", jobs.queues);
+    jobs.choice_queue("jajakajaja");
+
+    println!("worker berjalan, tekan Ctrl+C untuk berhenti");
+    tokio::signal::ctrl_c().await?;
+    worker.close(5000).await?;
+
+    Ok(())
 }

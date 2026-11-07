@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mini Transfer</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; }
+    form { display: flex; gap: 8px; margin-bottom: 16px; }
+    li { margin: 8px 0; }
+    button { cursor: pointer; }
+    #status { color: #555; }
+  </style>
+</head>
+<body>
+  <h1>Mini Transfer</h1>
+  <form id="upload-form">
+    <input type="file" id="file" name="file" required>
+    <button type="submit">Upload</button>
+  </form>
+  <p id="status"></p>
+  <ul id="files"></ul>
+  <script>
+    const form = document.getElementById('upload-form');
+    const status = document.getElementById('status');
+    const files = document.getElementById('files');
+
+    async function load() {
+      const response = await fetch('/files');
+      const data = await response.json();
+      files.innerHTML = '';
+      for (const file of data) {
+        const item = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = '/files/' + encodeURIComponent(file.key);
+        link.textContent = file.name + ' (' + file.size + ' bytes)';
+        const remove = document.createElement('button');
+        remove.textContent = 'Hapus';
+        remove.onclick = async () => {
+          await fetch('/files/' + encodeURIComponent(file.key), { method: 'DELETE' });
+          load();
+        };
+        item.append(link, ' ', remove);
+        files.append(item);
+      }
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const data = new FormData();
+      data.append('file', document.getElementById('file').files[0]);
+      status.textContent = 'Mengupload...';
+      const response = await fetch('/files', { method: 'POST', body: data });
+      status.textContent = response.ok ? 'Berhasil' : 'Gagal: ' + await response.text();
+      form.reset();
+      load();
+    });
+
+    load();
+  </script>
+</body>
+</html>
